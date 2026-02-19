@@ -3,6 +3,8 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma.js'
 import { hashPassword, comparePassword } from '../utils/hash.js';
 import jwt from 'jsonwebtoken';
+import { type AuthRequest } from '../middlewares/auth.middleware.js';
+// import { JwtPayload } from '../types/jwt';
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const JWT_EXPIRES_IN = process.env.JWT_EXPRIRES_IN || "1h";
@@ -86,3 +88,37 @@ export const loginUser = async (
     return res.status(400).json({ error: 'Error al buscar usuario' })
   }
 }
+
+export const getProfile = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    if (!req.user) return res.status(401).json({ error: "No autorizado: no se encontró info del usuario en la solicitud" });
+
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        email: true,
+      }
+    });
+
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    res.status(200).json({
+      message: "Perfil de usuario",
+      user
+    });
+
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'An error occurred while fetching profile' });
+  }
+}
+
