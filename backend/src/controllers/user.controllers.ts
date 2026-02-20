@@ -4,20 +4,20 @@ import { prisma } from '../lib/prisma.js'
 import { hashPassword, comparePassword } from '../utils/hash.js';
 import jwt from 'jsonwebtoken';
 import { type AuthRequest } from '../middlewares/auth.middleware.js';
-// import { JwtPayload } from '../types/jwt';
+
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const JWT_EXPIRES_IN = process.env.JWT_EXPRIRES_IN || "1h";
 
-interface jwtPayload {
-  userId: number
-  email: string
-}
+// interface jwtPayload {
+//   userId: number
+//   email: string
+// }
 
-const payload: jwtPayload = {
-  userId: 1,
-  email: "test@asdsd.com"
-}
+// const payload: jwtPayload = {
+//   userId: 1,
+//   email: "test@asdsd.com"
+// }
 
 export const createUser = async (
   req: Request,

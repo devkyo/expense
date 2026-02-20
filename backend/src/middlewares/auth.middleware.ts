@@ -18,14 +18,14 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
 
     const authHeader = req.headers.authorization as string;
-    if (!authHeader) res.status(401).json({ error: "No existe token" });
+    if (!authHeader) res.status(401).json({ error: "Unauthorized" });
 
     const parts = authHeader.split(' ');
 
-    if (parts.length !== 2 || parts[0] !== 'Bearer') return res.status(401).json({ error: "formato de token invalido" });
+    if (parts.length !== 2 || parts[0] !== 'Bearer') return res.status(401).json({ error: "Invalid credentials" });
 
     const token = parts[1];
-    if (!token) return res.status(401).json({ error: "No existen token" });
+    if (!token) return res.status(401).json({ error: "Invalid credentials" });
     const decoded = jwt.verify(token, secret);
 
     if (typeof decoded !== "object" || decoded === null || !('userId' in decoded) || !('email' in decoded)) {
@@ -41,6 +41,6 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
   } catch (err: any) {
     console.error(err);
-    return res.status(401).json({ error: `No autorizado: ${err.message}` });
+    return res.status(401).json({ error: `Unauthorized: ${err.message}` });
   }
 }

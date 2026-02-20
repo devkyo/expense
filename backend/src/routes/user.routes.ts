@@ -7,8 +7,8 @@ import { authenticate, type AuthRequest } from '../middlewares/auth.middleware.j
 const router = Router();
 
 router.post('/login', validate(loginUserSchema), loginUser);
-router.post('/users', validate(createUserSchema), createUser);
-router.get('/users', getUsers);
+router.post('/users', authenticate, validate(createUserSchema), createUser);
+router.get('/users', authenticate, getUsers);
 
 router.get('/profile', authenticate, getProfile);
 
