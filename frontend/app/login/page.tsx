@@ -1,12 +1,11 @@
-import Login from '../../components/dashboard/Login';
+import Login from '@/components/auth/Login';
 
 
-const page = () => {
-  return (
-    // <div className="w-full   container mx-auto">
-    <Login />
-    // </div>
-  )
+// La redirección de "ya tengo sesión → dashboard" ahora la maneja
+// el middleware.ts automáticamente, por lo que esta página queda limpia.
+export default function LoginPage() {
+
+ 
+
+  return <Login />;
 }
-
-export default page

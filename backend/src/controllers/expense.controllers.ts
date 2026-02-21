@@ -21,12 +21,15 @@ export const createExpense = async (
       }
     });
 
+
+
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const expense = await prisma.expense.create({
       data: {
         amount: Number(req.body.amount),
         description: req.body.description,
+
         userId: user.id,
         date: req.body.date ? new Date(req.body.date) : new Date()
       }

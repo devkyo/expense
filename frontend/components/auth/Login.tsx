@@ -1,8 +1,9 @@
 "use client"
-import * as React from "react"
+import * as React from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
+import { useRouter } from "next/navigation";
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,18 +16,13 @@ import {
 } from "@/components/ui/card"
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group"
+import { useState } from "react";
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 
 const formSchema = z.object({
@@ -37,12 +33,21 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, "La contraseña deber tener minimo 6 caracteres.")
-  // .regex(/[A-Z]/, "Debe tener al menos una mayúscula")
-  // .regex(/[0-9]/, "Debe tener al menos un número"),
+
 })
 
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center">
+    <Loader2 className="animate-spin h-6 w-6 text-blue-500" />
+  </div>
+);
 
 const Login = () => {
+
+
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,21 +57,33 @@ const Login = () => {
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    toast("You submitted the following values:", {
-      description: (
-        <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
-      },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
-    })
+  const onSubmit = async (data: { email: string; password: string }) => {
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:4000/api/v1/login', {
+        method: 'POST',
+        credentials: "include",
+        headers: {
+          "Content-Type": "Application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.message || "Error al iniciar sesión.");
+
+
+      router.push('/dashboard');
+
+    } catch (err: any) {
+      console.log(`Error en: ${err}`);
+    } finally {
+      setLoading(false);
+    }
+
   }
 
 
@@ -74,10 +91,12 @@ const Login = () => {
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center">
 
-
+      <div className="py-4 mx-auto">
+        {/* <h2 className="text-2xl font-bold">Expenses</h2> */}
+      </div>
       <Card className="w-full sm:max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Igresa a tu cuenta</CardTitle>
+          <CardTitle className="text-center text-lg">Accede a tus cuenta</CardTitle>
           <CardDescription>
             Ingresa a tu cuenta y gestiona tus gatos hormigas diarios.
           </CardDescription>
@@ -116,14 +135,25 @@ const Login = () => {
                       Contraseña
                     </FieldLabel>
 
-                    <Input
-                      {...field}
-                      type="password"
-                      id="password"
-                      placeholder="Tu contraseña"
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div className="relative">
 
+                      <Input
+                        {...field}
+                        type={showPass ? "text" : "password"}
+                        id="password"
+                        placeholder="Tu contraseña"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="cursor-pointer absolute right-2 top-1/2 -translate-y-1/2"
+                        onClick={() => setShowPass(!showPass)}
+                      >
+                        {showPass ? <EyeOff /> : <Eye />}
+                      </Button>
+                    </div>
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -135,9 +165,10 @@ const Login = () => {
           </form>
         </CardContent>
         <CardFooter>
+
           <Field orientation="horizontal">
-            <Button type="submit" form="form-rhf-demo">
-              Ingresar
+            <Button type="submit" form="form-rhf-demo" className="cursor-pointer">
+              {loading ? <LoadingSpinner /> : "Ingresar"}
             </Button>
             <Button type="button" variant="outline" onClick={() => form.reset()}>
               Registrarse

@@ -19,6 +19,8 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPRIRES_IN || "1h";
 //   email: "test@asdsd.com"
 // }
 
+
+
 export const createUser = async (
   req: Request,
   res: Response,
@@ -63,7 +65,7 @@ export const loginUser = async (
       where: { email }
     });
 
-    if (!user) return res.status(401).json({ message: `Usuario o contrase{a incorrectos.` });
+    if (!user) return res.status(401).json({ message: `Usuario o contraseña incorrectos.` });
 
     const isMatch = await comparePassword(password, user.password);
 
@@ -73,15 +75,23 @@ export const loginUser = async (
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions);
 
-    res.status(200).json({
-      message: 'Login success',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        token
-      }
-    });
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+      })
+      .status(200)
+      .json({
+        message: 'Login success',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          token
+        }
+      });
 
   } catch (err: any) {
     console.log(err);
